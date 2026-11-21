@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Équipes express</title>
+<meta name="theme-color" content="#17231d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Équipes">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: colonne unique mobile, réglages en haut, deux modes (noms / doigts) dessous */
+:root {
+  --bg: #f1f3ee;
+  --surface: #ffffff;
+  --ink: #17231d;
+  --muted: #5d6b63;
+  --line: #d6dcd3;
+  --accent: #17231d;
+  --accent-ink: #f1f3ee;
+  --t1: #d94f30; --f1: #ffffff;
+  --t2: #1f7a8c; --f2: #ffffff;
+  --t3: #f2b705; --f3: #17231d;
+  --t4: #4f8a24; --f4: #ffffff;
+  --t5: #7b4fa3; --f5: #ffffff;
+  --t6: #ec8fb0; --f6: #17231d;
+  --t7: #2b4c7e; --f7: #ffffff;
+  --t8: #7a5646; --f8: #ffffff;
+  --display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111a15; --surface: #1a261f; --ink: #eef2ec; --muted: #9aa99f; --line: #2c3b32;
+    --accent: #eef2ec; --accent-ink: #111a15; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111a15; --surface: #1a261f; --ink: #eef2ec; --muted: #9aa99f; --line: #2c3b32;
+  --accent: #eef2ec; --accent-ink: #111a15; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.4;
+  display: flex; flex-direction: column;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  gap: 14px; -webkit-tap-highlight-color: transparent;
+}
+h1 { font-family: var(--display); font-weight: 800; font-size: 28px; margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--t2); outline-offset: 2px; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.stepper { display: flex; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+.stepper span.lbl { padding: 0 8px 0 12px; font-weight: 600; font-size: 14px; color: var(--muted); }
+.stepper button { width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--bg); font-size: 22px; font-weight: 700; line-height: 1; }
+.stepper output { min-width: 28px; text-align: center; font-family: var(--display); font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--line); padding: 4px; border-radius: 12px; }
+.tabs button { border: 0; background: transparent; padding: 10px; border-radius: 9px; font-weight: 700; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+
+.panel { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.panel[hidden] { display: none; }
+
+.add { display: flex; gap: 8px; }
+.add input { flex: 1; min-width: 0; font: inherit; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.btn { border: 0; border-radius: 12px; padding: 12px 18px; font-weight: 700; background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.hint { color: var(--muted); font-size: 14px; margin: 0; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 6px 6px 12px; font-weight: 600; }
+.chip button { width: 24px; height: 24px; border-radius: 50%; border: 0; background: var(--bg); color: var(--muted); font-size: 15px; line-height: 1; }
+.meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.meta b { font-variant-numeric: tabular-nums; }
+.link { background: none; border: 0; color: var(--muted); text-decoration: underline; padding: 4px; }
+
+.teams { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.team { border-radius: 16px; padding: 12px 14px 14px; }
+.team h3 { margin: 0 0 6px; font-family: var(--display); font-size: 18px; font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; }
+.team h3 small { font-family: var(--body); font-weight: 600; opacity: .8; font-size: 13px; }
+.team ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; font-weight: 600; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Mode doigts */
+#p-fingers { position: fixed; inset: 0; z-index: 10; background: var(--surface); gap: 0; }
+.pad { position: absolute; inset: 0; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.fbar { position: absolute; left: 16px; right: 16px; z-index: 2; display: flex; gap: 10px; pointer-events: none; }
+.fbar button { pointer-events: auto; }
+.fbar.top { top: max(14px, env(safe-area-inset-top)); justify-content: space-between; align-items: center; }
+.fbar.bottom { bottom: max(16px, env(safe-area-inset-bottom)); flex-direction: column; align-items: center; }
+.flabel { font-weight: 700; background: var(--bg); border-radius: 999px; padding: 8px 14px; }
+.fbar .actions { justify-content: center; }
+.pad .msg { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding: 24px; gap: 6px; pointer-events: none; }
+.pad .msg strong { font-family: var(--display); font-size: 22px; text-wrap: balance; }
+.pad .msg span { color: var(--muted); }
+.tally { display: flex; flex-wrap: wrap; gap: 6px; }
+.tally span { padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+.count { font-family: var(--display); font-weight: 800; font-size: 96px; line-height: 1; font-variant-numeric: tabular-nums; }
+.finger { position: absolute; left: 0; top: 0; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-content: center; font-family: var(--display); font-weight: 800; font-size: 34px; pointer-events: none; box-shadow: 0 0 0 8px rgba(127,127,127,.18); }
+.finger.done { animation: pop .35s ease-out; }
+@keyframes pop { from { transform: scale(.6); } to { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .finger.done { animation: none; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Équipes express</h1>
+  <div class="stepper" role="group" aria-label="Nombre d'équipes">
+    <span class="lbl">Équipes</span>
+    <button id="minus" aria-label="Une équipe de moins">−</button>
+    <output id="nteams" aria-live="polite">2</output>
+    <button id="plus" aria-label="Une équipe de plus">+</button>
+  </div>
+</header>
+
+<div class="tabs" role="tablist">
+  <button role="tab" id="tab-names" aria-selected="true" aria-controls="p-names">Avec des noms</button>
+  <button role="tab" id="tab-fingers" aria-selected="false" aria-controls="p-fingers">Avec les doigts</button>
+</div>
+
+<section class="panel" id="p-names" role="tabpanel" aria-labelledby="tab-names">
+  <form class="add" id="addform">
+    <input id="name" type="text" placeholder="Prénom (ou plusieurs, séparés par une virgule)" autocomplete="off" enterkeyhint="done">
+    <button class="btn" type="submit">Ajouter</button>
+  </form>
+  <div class="meta">
+    <span><b id="count">0</b> joueur<span id="plural"></span></span>
+    <button class="link" id="clear">Tout effacer</button>
+  </div>
+  <div class="chips" id="chips"></div>
+  <p class="hint" id="hint">Ajoute au moins 2 joueurs pour former des équipes.</p>
+  <div class="actions">
+    <button class="btn" id="go" disabled>Former les équipes</button>
+  </div>
+  <div class="teams" id="teams" aria-live="polite"></div>
+  <div class="actions" id="after" hidden>
+    <button class="btn ghost" id="again">Mélanger à nouveau</button>
+    <button class="btn ghost" id="copy">Copier</button>
+  </div>
+</section>
+
+<section class="panel" id="p-fingers" role="tabpanel" aria-labelledby="tab-fingers" hidden>
+  <div class="pad" id="pad">
+    <div class="msg" id="padmsg"></div>
+  </div>
+  <div class="fbar top">
+    <button class="btn ghost" id="back">← Retour</button>
+    <span class="flabel" id="flabel"></span>
+  </div>
+  <div class="fbar bottom">
+    <div class="tally" id="tally" aria-live="polite"></div>
+    <div class="actions">
+      <button class="btn" id="next" hidden>Tour suivant</button>
+      <button class="btn ghost" id="restart" hidden>Tout recommencer</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  var MAX_TEAMS = 8;
+  var state = { names: [], n: 2, result: null };
+
+  function $(id) { return document.getElementById(id); }
+  function load() {
+    try {
+      var s = JSON.parse(localStorage.getItem("equipes-express") || "{}");
+      if (Array.isArray(s.names)) state.names = s.names.filter(function (x) { return typeof x === "string"; });
+      if (s.n >= 2 && s.n <= MAX_TEAMS) state.n = s.n;
+    } catch (e) {}
+  }
+  function save() {
+    try { localStorage.setItem("equipes-express", JSON.stringify({ names: state.names, n: state.n })); } catch (e) {}
+  }
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function teamStyle(i) { return "background:var(--t" + (i + 1) + ");color:var(--f" + (i + 1) + ")"; }
+
+  /* Réglage du nombre d'équipes */
+  function renderN() {
+    $("nteams").textContent = state.n;
+    $("flabel").textContent = state.n + " équipes";
+    $("minus").disabled = state.n <= 2;
+    $("plus").disabled = state.n >= MAX_TEAMS;
+    renderNames();
+    fingerRefresh();
+  }
+  $("minus").onclick = function () { if (state.n > 2) { state.n--; state.result = null; save(); resetCounts(); fingerReset(false); renderN(); renderTeams(); } };
+  $("plus").onclick = function () { if (state.n < MAX_TEAMS) { state.n++; state.result = null; save(); resetCounts(); fingerReset(false); renderN(); renderTeams(); } };
+
+  /* Onglets */
+  function tab(which) {
+    var names = which === "names";
+    $("tab-names").setAttribute("aria-selected", names);
+    $("tab-fingers").setAttribute("aria-selected", !names);
+    $("p-names").hidden = !names;
+    $("p-fingers").hidden = names;
+    if (!names) fingerReset(true);
+  }
+  $("tab-names").onclick = function () { tab("names"); };
+  $("tab-fingers").onclick = function () { tab("fingers"); };
+
+  /* Mode noms */
+  function renderNames() {
+    var box = $("chips");
+    box.innerHTML = "";
+    state.names.forEach(function (nm, i) {
+      var c = document.createElement("span");
+      c.className = "chip";
+      c.appendChild(document.createTextNode(nm));
+      var b = document.createElement("button");
+      b.setAttribute("aria-label", "Retirer " + nm);
+      b.textContent = "×";
+      b.onclick = function () { state.names.splice(i, 1); state.result = null; save(); renderNames(); renderTeams(); };
+      c.appendChild(b);
+      box.appendChild(c);
+    });
+    var k = state.names.length;
+    $("count").textContent = k;
+    $("plural").textContent = k > 1 ? "s" : "";
+    $("go").disabled = k < state.n;
+    $("hint").textContent = k < state.n
+      ? "Il faut au moins " + state.n + " joueurs pour " + state.n + " équipes."
+      : "Les équipes auront " + Math.floor(k / state.n) + (k % state.n ? " ou " + (Math.floor(k / state.n) + 1) : "") + " joueur(s).";
+    $("clear").hidden = k === 0;
+  }
+  $("addform").onsubmit = function (e) {
+    e.preventDefault();
+    var raw = $("name").value;
+    raw.split(/[,;\n]+/).forEach(function (s) {
+      s = s.trim();
+      if (s) state.names.push(s);
+    });
+    $("name").value = "";
+    state.result = null;
+    save(); renderNames(); renderTeams();
+    $("name").focus();
+  };
+  $("clear").onclick = function () { state.names = []; state.result = null; save(); renderNames(); renderTeams(); };
+
+  function draw() {
+    var order = shuffle(state.names);
+    var teams = [];
+    for (var i = 0; i < state.n; i++) teams.push([]);
+    order.forEach(function (nm, i) { teams[i % state.n].push(nm); });
+    state.result = teams;
+    renderTeams();
+    try { if (navigator.vibrate) navigator.vibrate(40); } catch (e) {}
+  }
+  function renderTeams() {
+    var box = $("teams");
+    box.innerHTML = "";
+    $("after").hidden = !state.result;
+    $("go").hidden = !!state.result;
+    if (!state.result) return;
+    state.result.forEach(function (members, i) {
+      var d = document.createElement("div");
+      d.className = "team";
+      d.setAttribute("style", teamStyle(i));
+      var h = document.createElement("h3");
+      h.appendChild(document.createTextNode("Équipe " + (i + 1)));
+      var sm = document.createElement("small");
+      sm.textContent = members.length;
+      h.appendChild(sm);
+      d.appendChild(h);
+      var ul = document.createElement("ul");
+      members.forEach(function (m) {
+        var li = document.createElement("li");
+        li.textContent = m;
+        ul.appendChild(li);
+      });
+      d.appendChild(ul);
+      box.appendChild(d);
+    });
+  }
+  $("go").onclick = draw;
+  $("again").onclick = draw;
+  $("copy").onclick = function () {
+    if (!state.result) return;
+    var txt = state.result.map(function (t, i) { return "Équipe " + (i + 1) + " : " + t.join(", "); }).join("\n");
+    var btn = $("copy");
+    try {
+      navigator.clipboard.writeText(txt).then(function () {
+        btn.textContent = "Copié";
+        setTimeout(function () { btn.textContent = "Copier"; }, 1500);
+      }, function () { btn.textContent = "Copie impossible"; });
+    } catch (e) { btn.textContent = "Copie impossible"; }
+  };
+
+  /* Mode doigts */
+  var pad = $("pad"), padmsg = $("padmsg");
+  var fingers = {};       // pointerId -> {x, y, el}
+  var phase = "wait";     // wait | count | done
+  var timer = null, left = 3;
+  var counts = [], round = 1;   // joueurs déjà placés par équipe, numéro du tour
+  function resetCounts() { counts = []; for (var i = 0; i < state.n; i++) counts.push(0); round = 1; }
+  function renderTally() {
+    var box = $("tally"), total = counts.reduce(function (a, b) { return a + b; }, 0);
+    box.innerHTML = "";
+    if (!total) return;
+    counts.forEach(function (c, i) {
+      var s = document.createElement("span");
+      s.setAttribute("style", teamStyle(i));
+      s.textContent = "Équipe " + (i + 1) + " : " + c;
+      box.appendChild(s);
+    });
+  }
+
+  function nFingers() { return Object.keys(fingers).length; }
+  function say(title, sub, big) {
+    padmsg.innerHTML = "";
+    if (big !== undefined) {
+      var c = document.createElement("div"); c.className = "count"; c.textContent = big; padmsg.appendChild(c);
+    }
+    if (title) { var s = document.createElement("strong"); s.textContent = title; padmsg.appendChild(s); }
+    if (sub) { var p = document.createElement("span"); p.textContent = sub; padmsg.appendChild(p); }
+  }
+  function fingerRefresh() {
+    if (phase === "done") return;
+    clearTimeout(timer);
+    var k = nFingers();
+    if (k === 0) {
+      phase = "wait";
+      say("Tour " + round + " : posez un doigt chacun", round === 1
+        ? "Si tout le monde ne tient pas sur l'écran, faites un deuxième tour avec les autres joueurs."
+        : "Les joueurs restants posent un doigt. Les équipes se rééquilibrent toutes seules.");
+    } else if (k < 2) {
+      phase = "wait";
+      say("1 doigt", "Il en faut au moins 2 pour lancer le tirage.");
+    } else {
+      phase = "count";
+      left = 3;
+      tick();
+    }
+  }
+  function tick() {
+    say(nFingers() + " doigts, ne bougez plus", "", left);
+    if (left === 0) { finish(); return; }
+    timer = setTimeout(function () { left--; tick(); }, 1000);
+  }
+  function finish() {
+    phase = "done";
+    padmsg.innerHTML = "";
+    var ids = shuffle(Object.keys(fingers));
+    ids.forEach(function (id) {
+      // équipe la moins remplie, au hasard en cas d'égalité
+      var min = Math.min.apply(null, counts);
+      var open = [];
+      counts.forEach(function (c, j) { if (c === min) open.push(j); });
+      var t = open[Math.floor(Math.random() * open.length)], f = fingers[id];
+      counts[t]++;
+      f.el.textContent = t + 1;
+      f.el.setAttribute("style", "transform:translate(" + f.x + "px," + f.y + "px);" + teamStyle(t));
+      f.el.classList.add("done");
+    });
+    $("next").hidden = false;
+    $("restart").hidden = false;
+    renderTally();
+    try { if (navigator.vibrate) navigator.vibrate(60); } catch (e) {}
+  }
+  function fingerReset(keep) {
+    clearTimeout(timer);
+    Object.keys(fingers).forEach(function (id) { fingers[id].el.remove(); });
+    fingers = {};
+    phase = "wait";
+    $("next").hidden = true;
+    $("restart").hidden = true;
+    if (!keep) resetCounts();
+    renderTally();
+    fingerRefresh();
+  }
+  function pos(e) {
+    var r = pad.getBoundingClientRect();
+    return { x: Math.round(e.clientX - r.left), y: Math.round(e.clientY - r.top) };
+  }
+  pad.addEventListener("pointerdown", function (e) {
+    if (phase === "done") return;
+    e.preventDefault();
+    var p = pos(e), el = document.createElement("div");
+    el.className = "finger";
+    el.textContent = "";
+    el.setAttribute("style", "transform:translate(" + p.x + "px," + p.y + "px)");
+    pad.appendChild(el);
+    fingers[e.pointerId] = { x: p.x, y: p.y, el: el };
+    fingerRefresh();
+  });
+  pad.addEventListener("pointermove", function (e) {
+    var f = fingers[e.pointerId];
+    if (!f || phase === "done") return;
+    var p = pos(e);
+    f.x = p.x; f.y = p.y;
+    f.el.style.transform = "translate(" + p.x + "px," + p.y + "px)";
+  });
+  function lift(e) {
+    var f = fingers[e.pointerId];
+    if (!f || phase === "done") return;
+    f.el.remove();
+    delete fingers[e.pointerId];
+    fingerRefresh();
+  }
+  pad.addEventListener("pointerup", lift);
+  pad.addEventListener("pointercancel", lift);
+  pad.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  $("back").onclick = function () { tab("names"); };
+  $("next").onclick = function () { round++; fingerReset(true); };
+  $("restart").onclick = function () { fingerReset(false); };
+
+  /* Démarrage */
+  load();
+  resetCounts();
+  renderN();
+  renderTeams();
+})();
+</script>
+</body>
+</html>
